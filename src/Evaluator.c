@@ -93,29 +93,46 @@ int Operator_comparePrecedence(Operator operator1,
     }
 }
 
+bool replaceExpressionStart(string *expression, string old,
+        string new) {
+    string theExpression;
+    if (string_startsWith(*expression, old)) {
+        theExpression = string_replaceFirst(*expression, old, new);
+        Memory_free(*expression);
+        *expression = theExpression;
+        return true;
+    } else {
+        return false;
+    }
+}
+
+bool replaceExpressionRecursive(string *expression, string old,
+        string new) {
+    string theExpression = string_replaceRecursiveReturnsNull(
+            *expression, old, new);
+    if (theExpression == null) {
+        return false;
+    } else {
+        Memory_free(*expression);
+        *expression = theExpression;
+        return true;
+    }
+}
+
 void normalizeExpression(string *expression) {
 
-    string theExpression;
+    while (replaceExpressionRecursive(expression, "++", "+")
+            || replaceExpressionRecursive(expression, "+-", "-")
+            || replaceExpressionRecursive(expression, "-+", "-")
+            || replaceExpressionRecursive(expression, "--", "+"));
 
-    if (string_startsWith(*expression, "+")) {
-        theExpression = string_replaceFirst(*expression, "+", "0+");
-        Memory_free(*expression);
-        *expression = theExpression;
-    }
+    replaceExpressionStart(expression, "+", "0+");
 
-    if (string_startsWith(*expression, "-")) {
-        theExpression = string_replaceFirst(*expression, "-", "0-");
-        Memory_free(*expression);
-        *expression = theExpression;
-    }
+    replaceExpressionStart(expression, "-", "0-");
 
-    theExpression = string_replaceAll(*expression, "(+", "(0+");
-    Memory_free(*expression);
-    *expression = theExpression;
+    replaceExpressionRecursive(expression, "(+", "(0+");
 
-    theExpression = string_replaceAll(*expression, "(-", "(0-");
-    Memory_free(*expression);
-    *expression = theExpression;
+    replaceExpressionRecursive(expression, "(-", "(0-");
 }
 
 bool readOperator(string start, Operator *operator,
@@ -379,7 +396,7 @@ EvaluationResult evaluateExpression(string expression,
     Operand operand;
     EvaluationResult result;
 
-    expression = string_replaceAll(expression, " ", "");
+    expression = string_replaceRecursive(expression, " ", "");
     normalizeExpression(&expression);
 
     start = expression;
