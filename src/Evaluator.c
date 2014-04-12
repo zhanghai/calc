@@ -404,8 +404,12 @@ EvaluationResult evaluateExpression(string expression,
         if (readOperator(start, &operator, &operatorStart,
                 &operatorEnd)) {
             if (operatorStart != start) {
-                readOperand(start, operatorStart, &operand);
-                pushOperand(operand, operandStack);
+                if (readOperand(start, operatorStart, &operand)) {
+                    pushOperand(operand, operandStack);
+                } else {
+                    cleanUp(expression, operatorStack, operandStack);
+                    return EVALUATION_ERROR_PARSING_FAILED;
+                }
             }
             start = operatorEnd;
             result = processOperator(operator, operatorStack,

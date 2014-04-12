@@ -21,11 +21,26 @@ string EVALUATION_RESULTS[] = {
 };
 
 
+void welcome() {
+    Console_print(
+            "calc  Copyright (C) 2014  Zhang Hai\n"
+            "\n"
+            "This program comes with ABSOLUTELY NO WARRANTY.\n"
+            "This is free software, and you are welcome to redistribute it\n"
+            "under GNU General Public License v3.0.\n"
+            "\n"
+            "Press <Enter> to evaluate an expression;\n"
+            "Enter an empty line to quit.\n"
+            "\n");
+}
+
 int main() {
 
     string line;
     double value;
     EvaluationResult result;
+
+    welcome();
 
     while (!string_isEmpty(line = Console_readLine("> "))) {
         result = evaluateExpression(line, &value);
