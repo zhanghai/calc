@@ -95,11 +95,9 @@ int Operator_comparePrecedence(Operator operator1,
 
 bool replaceExpressionStart(string *expression, string old,
         string new) {
-    string theExpression;
     if (string_startsWith(*expression, old)) {
-        theExpression = string_replaceFirst(*expression, old, new);
-        Memory_free(*expression);
-        *expression = theExpression;
+        string_subsititute(expression,
+                string_replaceFirst(*expression, old, new));
         return true;
     } else {
         return false;
@@ -126,11 +124,11 @@ void normalizeExpression(string *expression) {
             || replaceExpressionRecursive(expression, "-+", "-")
             || replaceExpressionRecursive(expression, "--", "+"));
 
-    replaceExpressionStart(expression, "+", "0+");
+    replaceExpressionStart(expression, "+", "");
 
     replaceExpressionStart(expression, "-", "0-");
 
-    replaceExpressionRecursive(expression, "(+", "(0+");
+    replaceExpressionRecursive(expression, "(+", "(");
 
     replaceExpressionRecursive(expression, "(-", "(0-");
 }
