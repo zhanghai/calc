@@ -23,7 +23,8 @@ string EVALUATION_RESULTS[] = {
 
 void welcome() {
     Console_print(
-            "calc  Copyright (C) 2014  Zhang Hai\n"
+            "calc - A simple calculator based on stack.\n"
+            "Copyright (C) 2014, Zhang Hai.\n"
             "\n"
             "This program comes with ABSOLUTELY NO WARRANTY.\n"
             "This is free software, and you are welcome to redistribute it\n"

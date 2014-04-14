@@ -23,7 +23,8 @@ double factorial(unsigned int operand) {
 
 /**
  * Evaluate the stack reversely, so the operator stack should be kept
- * in precedence ascendant order.
+ * in strict (for operators may not be commutative) ascending
+ * precedence order.
  */
 
 typedef enum {
@@ -83,7 +84,7 @@ int Operator_comparePrecedence(Operator operator1,
                     == OPERATOR_PRECEDENCE[OPERATOR_PARENTHESIS_LEFT]
             || operator1 == OPERATOR_COMMA) {
         /* Magic left parenthesis & comma! */
-        return 0;
+        return -1;
     } else if (operator1 == OPERATOR_PARENTHESIS_RIGHT) {
         /* Magic right parenthesis */
         return 1;
@@ -340,7 +341,7 @@ EvaluationResult processOperator(Operator operator,
     while (_(operatorStack, size) != 0
             && Operator_comparePrecedence(
                     *(Operator *)$(operatorStack, peek),
-                    operator) > 0) {
+                    operator) >= 0) {
         topOperator = $(operatorStack, pop);
         result = evaluteOperator(*topOperator, operatorStack,
                 operandStack);
