@@ -3,11 +3,35 @@
  * @author: Zhang Hai
  */
 
+/*
+ * Copyright (C) 2014 Zhang Hai
+ *
+ * This file is part of calc.
+ *
+ * calc is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * calc is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with calc.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #include "Evaluator.h"
 
 #include <math.h>
 
-#include "zhclib/Stack.h"
+#include "zhclib/LinkedStack.h"
+
+
+static double E = 2.71828182846;
+
+static double PI = 3.14159265359;
 
 
 double factorial(unsigned int operand) {
@@ -136,8 +160,10 @@ void normalizeExpression(string *expression) {
 
 bool readOperator(string start, Operator *operator,
         string *operatorStart, string *operatorEnd) {
+
     size_t i, position, oldPosition = string_length(start);
     bool found = false;
+
     for (i = 0; i < ARRAY_SIZE(OPERATOR_STRINGS); ++i) {
         if ((position = string_indexOfIgnoreCase(start,
                     OPERATOR_STRINGS[i])) != -1
@@ -150,11 +176,8 @@ bool readOperator(string start, Operator *operator,
                     + string_length(OPERATOR_STRINGS[i]);
         }
     }
-    if (found) {
-        return true;
-    } else {
-        return false;
-    }
+
+    return found;
 }
 
 bool readOperand(string start, string end, Operand *operand) {
@@ -165,31 +188,38 @@ bool readOperand(string start, string end, Operand *operand) {
      */
     string operandString = string_subString(start, 0, operandLength);
     Operand theOperand;
-    if (string_parseDouble(operandString, &theOperand)
+    bool success = false;
+
+    if (string_isEqualIgnoreCase(operandString, "e")) {
+        *operand = E;
+        success = true;
+    } else if (string_isEqualIgnoreCase(operandString, "pi")) {
+        *operand = PI;
+        success = true;
+    } else if (string_parseDouble(operandString, &theOperand)
             == operandLength) {
-        Memory_free(operandString);
         *operand = theOperand;
-        return true;
-    } else {
-        Memory_free(operandString);
-        return false;
+        success = true;
     }
+
+    Memory_free(operandString);
+    return success;
 }
 
-void pushOperator(Operator operator, Stack *operatorStack) {
+void pushOperator(Operator operator, LinkedStack *operatorStack) {
     Operator *theOperator = Memory_allocateType(Operator);
     *theOperator = operator;
     $(operatorStack, push, theOperator);
 }
 
-void pushOperand(Operand operand, Stack *operandStack) {
+void pushOperand(Operand operand, LinkedStack *operandStack) {
     Operand *theOperand = Memory_allocateType(Operand);
     *theOperand = operand;
     $(operandStack, push, theOperand);
 }
 
 EvaluationResult evaluteOperator(Operator operator,
-        Stack *operatorStack, Stack *operandStack) {
+        LinkedStack *operatorStack, LinkedStack *operandStack) {
 
     Operator *operator1;
     Operand *operand1, *operand2;
@@ -333,7 +363,7 @@ EvaluationResult evaluteOperator(Operator operator,
 }
 
 EvaluationResult processOperator(Operator operator,
-        Stack *operatorStack, Stack *operandStack) {
+        LinkedStack *operatorStack, LinkedStack *operandStack) {
 
     Operator *topOperator;
     EvaluationResult result;
@@ -356,7 +386,7 @@ EvaluationResult processOperator(Operator operator,
     return EVALUATION_SUCCESS;
 }
 
-EvaluationResult doFinal(Stack *operatorStack, Stack *operandStack) {
+EvaluationResult doFinal(LinkedStack *operatorStack, LinkedStack *operandStack) {
 
     Operator *operator;
     EvaluationResult result;
@@ -378,8 +408,8 @@ EvaluationResult doFinal(Stack *operatorStack, Stack *operandStack) {
     }
 }
 
-void cleanUp(string expression, Stack *operatorStack,
-        Stack *operandStack) {
+void cleanUp(string expression, LinkedStack *operatorStack,
+        LinkedStack *operandStack) {
     Memory_free(expression);
     $(operatorStack, delete);
     $(operandStack, delete);
@@ -389,8 +419,8 @@ EvaluationResult evaluateExpression(string expression,
         Operand *value) {
 
     string start, end, operatorStart, operatorEnd;
-    Stack *operatorStack = Stack_new(),
-            *operandStack = Stack_new();
+    LinkedStack *operatorStack = LinkedStack_new(),
+            *operandStack = LinkedStack_new();
     Operator operator;
     Operand operand;
     EvaluationResult result;
